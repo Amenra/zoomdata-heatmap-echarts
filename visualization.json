@@ -1,0 +1,78 @@
+{
+  "name": "Echarts Heat Map",
+  "enabled": true,
+  "controls": [
+    "Color",
+    "Download",
+    "Filters",
+    "Info",
+    "Sort",
+    "Undo"
+  ],
+  "objectFieldTypes": [
+    "TIME",
+    "NUMBER",
+    "MONEY",
+    "ATTRIBUTE",
+    "INTEGER"
+  ],
+  "variables": [
+    {
+      "name": "Multi Group By",
+      "type": "multi-group",
+      "descr": "",
+      "attributeType": [
+        "ATTRIBUTE",
+        "TIME"
+      ],
+      "defaultValue": "",
+      "colorMetric": false,
+      "colorNumb": 0,
+      "config": {
+        "groupLevel": 2,
+        "groupNames": [
+          "Group 1",
+          "Group 2"
+        ],
+        "groupLimits": [
+          50,
+          20
+        ],
+        "groupTypes": [
+          "ATTRIBUTE TIME",
+          "ATTRIBUTE TIME NONE"
+        ]
+      }
+    },
+    {
+      "name": "Color Metric",
+      "type": "metric",
+      "attributeType": [
+        "MONEY",
+        "INTEGER",
+        "NUMBER"
+      ],
+      "defaultValue": [
+        {
+          "name": "count",
+          "colorConfig": {
+            "autoShowColorLegend": true
+          }
+        }
+      ],
+      "colorMetric": false,
+      "colorNumb": 2,
+      "metricType": "color",
+      "legendType": "palette",
+      "colorSet": "ZoomSequential"
+    },
+    {
+      "name": "Show Metric Values",
+      "type": "bool",
+      "defaultValue": true,
+      "colorMetric": false,
+      "colorNumb": 0
+    }
+  ],
+  "templateType": "UBER_BARS"
+}
