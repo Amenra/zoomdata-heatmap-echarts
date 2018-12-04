@@ -1,0 +1,33 @@
+{
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "node": true,
+        "es6": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 2017,
+        "ecmaFeatures": {
+            "jsx": true,
+            "experimentalObjectRestSpread": true
+        },
+        "sourceType": "module"
+    },
+    "globals": {
+        "controller": true
+    },
+    "rules": {
+        "max-len": ["error", {
+            "code": 120,
+            "ignoreComments": true,
+            "ignoreRegExpLiterals": true
+        }],
+        "eqeqeq": ["warn", "always", {"null": "ignore"}],
+        "no-trailing-spaces": "error",
+        "no-bitwise": "warn",
+        "guard-for-in": "warn",
+        "no-caller": "error",
+        "no-new": "warn",
+        "no-undef": "error"
+    }
+}

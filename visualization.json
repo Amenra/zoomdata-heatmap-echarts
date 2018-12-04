@@ -2,12 +2,22 @@
   "name": "Echarts Heat Map",
   "enabled": true,
   "controls": [
+    "UberStyle",
+    "DirtyDataIndicator",
     "Color",
-    "Download",
-    "Filters",
+    "FiltersIndicator",
+    "Undo",
     "Info",
+    "TimePlayer",
+    "Filters",
+    "Defaults",
+    "Bookmark",
     "Sort",
-    "Undo"
+    "Zoom",
+    "NoDataIndicator",
+    "TimeTable",
+    "Share",
+    "Download"
   ],
   "objectFieldTypes": [
     "TIME",

@@ -1,12 +1,15 @@
-import $ from 'jquery';
-import echarts from 'echarts';
+/* FYI:
+  Echarts can be loading as npm package (1) or as a customized minifed js file (2),
+  which save up to 400KB in the latter case
+*/
+/* import echarts from 'echarts'; // (1) */
+import echarts from '../resources/echarts.customized.min.js'; /* (2) */
+
 import {
-  assign,
   curry,
   debounce,
   filter,
   groupBy,
-  isUndefined,
   keys,
   map,
   min,
@@ -213,20 +216,22 @@ const option = {
     borderColor: '#f1f1f1',
     borderWidth: 1,
   },
-  xAxis: assign(axisOption, {
+  xAxis: {
+    ...axisOption,
     position: 'top',
     axisLabel: {
       formatter: axisLabel,
       interval: 0,
     },
-  }),
-  yAxis: assign(axisOption, {
+  },
+  yAxis: {
+    ...axisOption,
     inverse: true,
     axisLabel: {
       formatter: axisLabel,
       interval: 0,
     },
-  }),
+  },
   series: [
     {
       type: 'heatmap',
@@ -254,7 +259,7 @@ const option = {
 };
 
 controller.update = data => {
-  if (isUndefined(getMetricValue(data[0]))) {
+  if (getMetricValue(data[0]) === undefined) {
     return;
   }
   option.xAxis.data = distinctGroup2(data);
@@ -287,116 +292,118 @@ chart.on('click', params => {
   });
 });
 
-chart.on('mousemove', params => {
+chart.on('mousemove', ({ event, data } = {}) => {
   controller.tooltip.show({
-    event: params.event.event,
-    data: () => params.data.datum,
-    content: () => {
-      const dataItem = params.data.datum;
-
-      function getDataItems() {
-        const colorMetric = metricAccessor.getMetric();
-        const dataItemsArray = [
-          {
-            label: multiGroupAccessor.getLabels()[0],
-            value: multiGroupAccessor.formatted(dataItem)[0],
-            func: null,
-            percentage: null,
-            showColorIcon: false,
-          },
-          {
-            label: multiGroupAccessor.getLabels()[1],
-            value: multiGroupAccessor.formatted(dataItem)[1],
-            func: null,
-            percentage: null,
-            showColorIcon: false,
-          },
-        ];
-        const volume = controller.source.volumeMetric;
-        const metricDataItems = [
-          {
-            label: volume.label,
-            func: null,
-            value: controller.metricFormatter.format(dataItem.current.count),
-            percentage: null,
-            showColorIcon: colorMetric.name === volume.name,
-          },
-        ];
-
-        if (colorMetric.name !== volume.name) {
-          metricDataItems.push({
-            label: metricAccessor.getLabel(),
-            func: colorMetric.func,
-            value: metricAccessor.formatted(dataItem),
-            percentage: null,
-            showColorIcon: true,
-          });
-        }
-
-        return dataItemsArray.concat(metricDataItems);
-      }
-
-      function tooltipView(dataItems) {
-        const $content = $('<div>');
-        const $innerContent = $(
-          '<div class="zd_tooltip_info_group customized" />',
-        );
-        const $table = $('<div class="zd_tooltip_info_table" />');
-        const $rows = map(obj => getRow(obj))(dataItems);
-
-        $table.append($rows);
-        $innerContent.append($table);
-        $content.append($innerContent);
-
-        function getRow(item) {
-          const $colorIcon = $('<div class="color_icon active" />');
-          const $row = $('<div class="zd_tooltip_info_table_row" />');
-          const $rowLabel = $(
-            '<div class="zd_tooltip_info_table_row_label" />',
-          );
-          const $rowValue = $(
-            '<div class="zd_tooltip_info_table_row_value" />',
-          );
-          const value =
-            item.value +
-            ((item.percentage && ' (' + item.percentage + '%)') || '');
-          let label;
-
-          $colorIcon.css({
-            'background-color': getColor(dataItem),
-          });
-
-          if (item.func !== null) {
-            const itemFunc =
-              item.func.toLowerCase() === 'distinct_count'
-                ? 'Distinct Count'
-                : item.func.charAt(0).toUpperCase() + item.func.slice(1);
-
-            label = item.label + ' (' + itemFunc + ')';
-          } else {
-            label = item.label;
-          }
-
-          if (item.showColorIcon) {
-            $rowValue.append($colorIcon);
-          }
-
-          $rowLabel.text(label);
-          $rowValue.append(value);
-
-          $row.append($rowLabel, $rowValue);
-
-          return $row;
-        }
-
-        return $content.html();
-      }
-
-      return tooltipView(getDataItems());
-    },
+    event: event.event,
+    data: () => data.datum,
+    content: () => tooltipView(getDataItems(data.datum)),
   });
 });
 
 chart.on('mouseout', () => {
   controller.tooltip.hide();
 });
+
+// Helpers
+function getDataItems(dataItem) {
+  const colorMetric = metricAccessor.getMetric();
+  const dataItemsArray = [
+    {
+      label: multiGroupAccessor.getLabels()[0],
+      value: multiGroupAccessor.formatted(dataItem)[0],
+      func: null,
+      percentage: null,
+      showColorIcon: false,
+    },
+    {
+      label: multiGroupAccessor.getLabels()[1],
+      value: multiGroupAccessor.formatted(dataItem)[1],
+      func: null,
+      percentage: null,
+      showColorIcon: false,
+    },
+  ];
+  const volume = controller.source.volumeMetric;
+  const metricDataItems = [
+    {
+      label: volume.label,
+      func: null,
+      value: controller.metricFormatter.format(dataItem.current.count),
+      percentage: null,
+      showColorIcon: colorMetric.name === volume.name,
+    },
+  ];
+
+  if (colorMetric.name !== volume.name) {
+    metricDataItems.push({
+      label: metricAccessor.getLabel(),
+      func: colorMetric.func,
+      value: metricAccessor.formatted(dataItem),
+      percentage: null,
+      showColorIcon: true,
+    });
+  }
+
+  return dataItemsArray.concat(metricDataItems);
+}
+
+function tooltipView(dataItems) {
+  const contentElement = document.createElement('div');
+
+  const innerContentElement = document.createElement('div');
+  innerContentElement.setAttribute('class', 'zd_tooltip_info_group customized');
+
+  const tableElement = document.createElement('div');
+  tableElement.setAttribute('class', 'zd_tooltip_info_table');
+
+  for (const dataItem of dataItems) {
+    const rowElement = getRow(dataItem);
+    tableElement.appendChild(rowElement);
+  }
+
+  innerContentElement.appendChild(tableElement);
+  contentElement.appendChild(innerContentElement);
+
+  return contentElement.innerHTML;
+}
+
+function getRow(item) {
+  const rowElement = document.createElement('div');
+  rowElement.setAttribute('class', 'zd_tooltip_info_table_row');
+
+  const rowLabelElement = document.createElement('div');
+  rowLabelElement.setAttribute('class', 'zd_tooltip_info_table_row_label');
+
+  const rowValueElement = document.createElement('div');
+  rowValueElement.setAttribute('class', 'zd_tooltip_info_table_row_value');
+
+  const value = `${item.value}${(item.percentage ?' (' + item.percentage + '%)' : '')}`;
+
+  let label;
+  if (item.func !== null) {
+    const itemFunc =
+      item.func.toLowerCase() === 'distinct_count'
+        ? 'Distinct Count'
+        : item.func.charAt(0).toUpperCase() + item.func.slice(1);
+
+    label = item.label + ' (' + itemFunc + ')';
+  } else {
+    label = item.label;
+  }
+
+  if (item.showColorIcon) {
+    const colorIconElement = document.createElement('div');
+    colorIconElement.setAttribute('class', 'zd_color_icontooltip_info_group active');
+    colorIconElement.style['background-color'] = getColor(dataItem);
+
+    rowValueElement.append(colorIconElement);
+  }
+
+  rowLabelElement.innerText = label;
+  rowValueElement.innerText = value;
+
+  rowElement.appendChild(rowLabelElement);
+  rowElement.appendChild(rowValueElement);
+
+  return rowElement;
+}
