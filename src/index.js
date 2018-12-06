@@ -391,16 +391,16 @@ function getRow(item) {
     label = item.label;
   }
 
-  if (item.showColorIcon) {
-    const colorIconElement = document.createElement('div');
-    colorIconElement.setAttribute('class', 'zd_color_icontooltip_info_group active');
-    colorIconElement.style['background-color'] = getColor(dataItem);
-
-    rowValueElement.append(colorIconElement);
-  }
-
   rowLabelElement.innerText = label;
   rowValueElement.innerText = value;
+
+  if (item.showColorIcon) {
+    const colorIconElement = document.createElement('div');
+    colorIconElement.setAttribute('class', 'color_icon active');
+    colorIconElement.style['background-color'] = getColor(dataItem);
+
+    rowValueElement.appendChild(colorIconElement);
+  }
 
   rowElement.appendChild(rowLabelElement);
   rowElement.appendChild(rowValueElement);
